@@ -1,27 +1,40 @@
-import requests
-import time
+const axios = require('axios');
+const express = require('express');
 
-def check_website_status():
-    urls = [
-        'https://response-qqh1.onrender.com/',
-        'https://serverchat-v3qr.onrender.com/'
-    ]
+const app = express();
+const port = process.env.PORT || 3000;
 
-    while True:
-        for url in urls:
-            try:
-                response = requests.get(url)
+app.get('/', async (req, res) => {
+  await checkWebsiteStatus();
+  res.send('Website status check initiated. Check the console for results.');
+});
 
-                if response.status_code == 200:
-                    print(f'{url} is active and accessible.')
-                else:
-                    print(f'{url} returned status code {response.status_code}. It may not be active.')
-            except Exception as error:
-                print('Error:', str(error))
-                print(f'{url} is not active or there was an error.')
+async function checkWebsiteStatus() {
+  const urls = [
+    'https://response-qqh1.onrender.com/',
+    'https://serverchat-v3qr.onrender.com/'
+  ];
 
-        # Sleep for 14 minutes (14 * 60 seconds)
-        time.sleep(14 * 60)
+  for (const url of urls) {
+    try {
+      const response = await axios.get(url);
 
-if __name__ == "__main__":
-    check_website_status()
+      if (response.status === 200) {
+        console.log(`${url} is active and accessible.`);
+      } else {
+        console.log(`${url} returned status code ${response.status}. It may not be active.`);
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+      console.log(`${url} is not active or there was an error.`);
+    }
+  }
+}
+
+// Schedule the check to run every 14 minutes (14 * 60,000 milliseconds)
+const interval = 14 * 60 * 1000;
+setInterval(checkWebsiteStatus, interval);
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
